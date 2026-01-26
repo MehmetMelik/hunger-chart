@@ -11,6 +11,7 @@ import {
   Legend,
   Filler,
   type ChartOptions,
+  type LegendItem,
   type ScriptableContext,
   type TooltipItem,
 } from "chart.js";
@@ -213,6 +214,29 @@ export default function HungerMinWageUsdChart() {
             boxWidth: 14,
             boxHeight: 14,
             padding: 18,
+          },
+          onClick: (_, legendItem: LegendItem, legend) => {
+            const chart = legend.chart;
+            const datasets = chart.data.datasets;
+            const clickedIndex = legendItem.datasetIndex;
+            if (clickedIndex === undefined) return;
+
+            // Count visible datasets
+            const visibleCount = datasets.filter(
+              (_, i) => chart.isDatasetVisible(i)
+            ).length;
+
+            // If this is the last visible dataset, don't hide it
+            if (visibleCount === 1 && chart.isDatasetVisible(clickedIndex)) {
+              return;
+            }
+
+            // Toggle visibility
+            chart.setDatasetVisibility(
+              clickedIndex,
+              !chart.isDatasetVisible(clickedIndex)
+            );
+            chart.update();
           },
         },
         tooltip: {
