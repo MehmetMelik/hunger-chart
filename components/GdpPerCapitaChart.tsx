@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -63,6 +63,33 @@ type GdpMode = "nominal" | "ppp";
 
 export default function GdpPerCapitaChart() {
   const [gdpMode, setGdpMode] = useState<GdpMode>("nominal");
+  const chartRef = useRef<ChartJS<"line">>(null);
+
+  const handleDownload = () => {
+    const chart = chartRef.current;
+    if (!chart) return;
+
+    // Create a new canvas with solid background
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = chart.canvas.width;
+    canvas.height = chart.canvas.height;
+
+    // Fill with dark background color
+    ctx.fillStyle = "#0b1220";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the chart on top
+    ctx.drawImage(chart.canvas, 0, 0);
+
+    const url = canvas.toDataURL("image/png", 1);
+    const link = document.createElement("a");
+    link.download = `turkey-gdp-per-capita-${gdpMode}.png`;
+    link.href = url;
+    link.click();
+  };
 
   const isPppMode = gdpMode === "ppp";
 
@@ -336,7 +363,35 @@ export default function GdpPerCapitaChart() {
         </div>
 
         <div style={{ height: 520, padding: "0 16px 16px" }}>
-          <Line data={data} options={options} />
+          <Line ref={chartRef} data={data} options={options} />
+        </div>
+
+        <div style={{ padding: "0 20px 20px", display: "flex", justifyContent: "flex-end" }}>
+          <button
+            type="button"
+            onClick={handleDownload}
+            style={{
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.20)",
+              background: "rgba(255,255,255,0.05)",
+              color: "rgba(255,255,255,0.8)",
+              padding: "8px 16px",
+              fontSize: 12,
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            PNG Indir
+          </button>
         </div>
       </div>
     </section>
